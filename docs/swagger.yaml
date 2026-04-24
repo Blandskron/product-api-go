@@ -1,0 +1,285 @@
+basePath: /api
+definitions:
+  domain.Product:
+    properties:
+      id:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      price:
+        description: Price should always be positive
+        type: number
+      stock:
+        description: Stock can be 0, but not negative
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - price
+    type: object
+  domain.Purchase:
+    properties:
+      id:
+        type: string
+      product_id:
+        type: string
+      purchase_date:
+        type: string
+      quantity:
+        type: integer
+      total_cost:
+        description: Calculated based on product cost and quantity
+        type: number
+    required:
+    - product_id
+    - quantity
+    type: object
+  domain.Sale:
+    properties:
+      id:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      sale_date:
+        type: string
+      total_price:
+        description: Calculated based on product price and quantity
+        type: number
+    required:
+    - product_id
+    - quantity
+    type: object
+  handler.DeleteSuccessResponse:
+    properties:
+      message:
+        example: deleted
+        type: string
+    type: object
+  handler.HTTPError:
+    properties:
+      message:
+        example: The requested resource was not found
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for a product API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Product API
+  version: "1.0"
+paths:
+  /products:
+    get:
+      description: Get a list of all products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Product'
+            type: array
+      summary: Get all products
+      tags:
+      - products
+    post:
+      consumes:
+      - application/json
+      description: Add a new product to the database
+      parameters:
+      - description: Product object
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Create a new product
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      description: Delete a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.DeleteSuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      description: Get a single product by its unique ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Product'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Get a single product by ID
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Update details of an existing product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product object to update
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Update an existing product
+      tags:
+      - products
+  /purchases:
+    post:
+      consumes:
+      - application/json
+      description: Add stock and record a purchase
+      parameters:
+      - description: Purchase object
+        in: body
+        name: purchase
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Purchase'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Purchase'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Process a new product purchase
+      tags:
+      - purchases
+  /sales:
+    post:
+      consumes:
+      - application/json
+      description: Deduct stock and record a sale
+      parameters:
+      - description: Sale object
+        in: body
+        name: sale
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Sale'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Sale'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.HTTPError'
+      summary: Process a new product sale
+      tags:
+      - sales
+swagger: "2.0"
+tags:
+- name: products
+- name: sales
+- name: purchases

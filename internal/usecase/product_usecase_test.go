@@ -14,14 +14,26 @@ type MockProductRepository struct {
 	mock.Mock
 }
 
-func (m *MockProductRepository) GetAll() ([]domain.Product, error) { panic("not implemented") }
-func (m *MockProductRepository) GetByID(id string) (domain.Product, error) { panic("not implemented") }
+func (m *MockProductRepository) GetAll() ([]domain.Product, error) {
+	args := m.Called()
+	return args.Get(0).([]domain.Product), args.Error(1)
+}
+func (m *MockProductRepository) GetByID(id string) (domain.Product, error) {
+	args := m.Called(id)
+	return args.Get(0).(domain.Product), args.Error(1)
+}
 func (m *MockProductRepository) Create(product *domain.Product) error {
 	args := m.Called(product)
 	return args.Error(0)
 }
-func (m *MockProductRepository) Update(product *domain.Product) error { panic("not implemented") }
-func (m *MockProductRepository) Delete(id string) error { panic("not implemented") }
+func (m *MockProductRepository) Update(product *domain.Product) error {
+	args := m.Called(product)
+	return args.Error(0)
+}
+func (m *MockProductRepository) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
 
 func TestCreateProduct_Success(t *testing.T) {
 	// Arrange

@@ -37,29 +37,32 @@ func (u *PurchaseUsecase) ProcessPurchase(purchase *domain.Purchase) error {
 
 	// Start a database transaction
 	return u.db.Transaction(func(tx *gorm.DB) error {
-		// 1. Get Product (or create if new)
-		product, err := u.productRepo.GetByID(purchase.ProductID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Product does not exist, create a new one (assuming purchase includes product details)
-				// For simplicity, we'll assume product details are already in the purchase.ProductID
-				// In a real app, you'd likely have a separate endpoint to create products or
-				// the purchase payload would include more product details.
-				return ErrProductNotFoundForPurchase
-			}
-			return err
-		}
-
-		// 2. Add stock
-		product.Stock += purchase.Quantity
-		if err := u.productRepo.Update(&product); err != nil {
-			return err
-		}
-
-		// 3. Create Purchase record
-		purchase.ID = uuid.New().String()
-		purchase.PurchaseDate = time.Now()
-		purchase.TotalCost = product.Price * float64(purchase.Quantity) // Assuming purchase cost is same as sale price for simplicity
-		return u.purchaseRepo.Create(purchase, tx)
+		return u.processPurchaseLogic(tx, purchase)
 	})
+}
+
+// processPurchaseLogic contains the core business logic for processing a purchase.
+func (u *PurchaseUsecase) processPurchaseLogic(tx *gorm.DB, purchase *domain.Purchase) error {
+	// 1. Get Product
+	product, err := u.productRepo.GetByID(purchase.ProductID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// In a real app, you might create the product here if the payload contained enough info.
+			// For now, we enforce that the product must exist.
+			return ErrProductNotFoundForPurchase
+		}
+		return err
+	}
+
+	// 2. Add stock
+	product.Stock += purchase.Quantity
+	if err := u.productRepo.Update(&product); err != nil {
+		return err
+	}
+
+	// 3. Create Purchase record
+	purchase.ID = uuid.New().String()
+	purchase.PurchaseDate = time.Now()
+	purchase.TotalCost = product.Price * float64(purchase.Quantity) // Assuming purchase cost is same as sale price for simplicity
+	return u.purchaseRepo.Create(purchase, tx)
 }

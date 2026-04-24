@@ -1,6 +1,5 @@
 # Product Management API (Go)
 
-![Go Build](https://github.com/actions/workflows/go.yml/badge.svg)
 
 Una API REST robusta y de nivel profesional construida en Go para la gestión de un inventario de productos. La API implementa un CRUD completo para productos y endpoints transaccionales para registrar ventas y compras, asegurando la integridad de los datos y el stock.
 
